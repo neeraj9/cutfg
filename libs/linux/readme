@@ -1,0 +1,6 @@
+
+libcheck1.a: Depends on
+        libc.so.6 => /lib/libc.so.6 (0x40025000)
+        /lib/ld-linux.so.2 => /lib/ld-linux.so.2 (0x40000000)
+check version: 0.8.4
+--------------------------------------------------------------------------------

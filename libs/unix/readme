@@ -1,0 +1,7 @@
+
+libcheck1.a: Depends on
+        libc.so.1 =>     /usr/lib/libc.so.1
+        libdl.so.1 =>    /usr/lib/libdl.so.1
+        /usr/platform/SUNW,Ultra-4/lib/libc_psr.so.1
+check version: 0.8.4
+-------------------------------------------------------------------------------
