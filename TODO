@@ -1,0 +1,30 @@
+---------------------------------------------------------
+	TODO
+---------------------------------------------------------
+
+1)
+CUnit and Check differ in number of places.
+Here is a list of few of them:
+
+	1. In check there are two types of setup/teardown function namely
+	   "checked" and "unchecked". Checked if executed before unit test
+		 while unchecked is executed only once a test group (or super test).
+		 In Cunit "unchecked" is only supported.
+	2. Check can optionally fork a new process to execute a unit test but
+	   in CUnit there is no fork.
+	3. The functions for reporting error is different (ex. ASSERT() in Cunit, 
+	   fail_unless() in Check).
+
+Inorder to take care of the above differences in the XML file (to make it
+generic) note the following suggestions for the C code generator:
+
+	1. To add "checked" setup/teardow functionality in CUnit the C code
+	   generator can add a function call to "checked" setup/teardown just
+		 after the declaration ends (we know where thats gona happen).
+	2. Cant do much about that.
+	3. Take functions used by Check as the standard and write wrappers 
+	   (function or a macro) for CUnit.
+
+2)
+At present multiple setup/teardown pair is not supported (ie. cant have
+both "unchecked" and "checked" versions at the same time).

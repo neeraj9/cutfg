@@ -1,0 +1,68 @@
+
+# EDIT
+# put the include paths used by the implementation file
+# so that the unit test code compiles
+IMPL_INC_PATH=
+IMPL_LIB=
+FRAMEWORK_INC_PATH=.
+GCC=gcc
+AR=ar
+
+#### DO NOT EDIT BELOW THIS #######
+
+ifneq "x$(IMPL_INC_PATH)" "x"
+	IMPL_INC= -I $(IMPL_INC_PATH)
+else
+	IMPL_INC=
+endif
+
+ifneq "x$(FRAMEWORK_INC_PATH)" "x"
+	FRAMEWORK_INC= -I $(FRAMEWORK_INC_PATH)
+else
+	FRAMEWORK_INC=
+endif
+
+FRAMEWORK_LIB= <frameworklib>
+
+INCLUDES= -I . $(FRAMEWORK_INC) $(IMPL_INC)
+STATICLIBS= $(FRAMEWORK_LIB) $(IMPL_LIB)
+LDFLAGS= $(STATICLIBS)
+CFLAGS=
+
+DEBUG_CFLAGS = -g -DUSE_HEAP_STATS
+PROFILE_CFLAGS = -pg
+RELEASE_CFLAGS = -O2
+
+ifeq "$(VERSION)" "PROFILE"
+CFLAGS = $(PROFILE_CFLAGS)
+else
+ifeq "$(VERSION)" "DEBUG"
+CFLAGS = $(DEBUG_CFLAGS)
+else
+ifeq "$(VERSION)" "RELEASE"
+CFLAGS = $(RELEASE_CFLAGS)
+endif
+endif
+endif
+
+SRC= test_<suitename>.c
+OBJS=$(SRC:%.c=%.o)
+
+usage:
+	@echo "Do make all/<suitename>"
+	@echo "You can also specify a version by doing"
+	@echo "    make VERSION=PROFILE (or DEBUG or RELEASE)"
+
+all: $(OBJS) 
+	$(GCC) -c $(INCLUDES) $(CFLAGS) -DALL main.c -o main.o
+	$(GCC) $(CFLAGS) $(OBJS) main.o $(LDFLAGS) -o test_<suitename>
+
+.c.o:
+	$(GCC) -c $(INCLUDES) $(CFLAGS) $< -o $@
+
+<suitename>: test_<suitename>.o 
+	$(GCC) -c $(INCLUDES) $(CFLAGS) -D<suitename> main.c -o main.o
+	$(GCC) $(CFLAGS) test_<suitename>.o main.o $(LDFLAGS) -o test_<suitename>
+
+clean:
+	rm -f *.o

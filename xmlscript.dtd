@@ -1,0 +1,30 @@
+<!ELEMENT suite ( suitename, testcase+ ) >
+<!ELEMENT suitename ( #PCDATA ) >
+<!ELEMENT setup ( doc, data ) >
+<!ELEMENT teardown ( doc, data ) >
+<!ELEMENT data ( #PCDATA ) >
+<!ELEMENT testcase ( name, setup, teardown, test+ ) >
+
+<!ELEMENT test ( index, label, doc, code ) >
+<!ELEMENT name ( #PCDATA ) >
+<!ELEMENT index ( #PCDATA ) >
+<!ELEMENT label ( #PCDATA ) >
+
+<!ELEMENT doc ( title, function, notes, bugs, seealso, todo, initialconditions?, inputvectors?, expectedresults? ) >
+<!ELEMENT title ( #PCDATA ) >
+<!ELEMENT function ( #PCDATA ) >
+<!ELEMENT notes ( #PCDATA ) >
+<!ELEMENT bugs ( #PCDATA ) >
+<!ELEMENT seealso ( #PCDATA ) >
+<!ELEMENT todo ( #PCDATA ) >
+<!ELEMENT initialconditions ( data+ ) >
+<!ELEMENT inputvectors ( data+ ) >
+<!ELEMENT expectedresults ( data+ ) >
+
+<!ELEMENT code ( decl, init, call, exit ) >
+<!ELEMENT decl ( auto, custom ) >
+<!ELEMENT auto ( #PCDATA ) >
+<!ELEMENT custom ( #PCDATA ) >
+<!ELEMENT init ( #PCDATA ) >
+<!ELEMENT call ( #PCDATA ) >
+<!ELEMENT exit ( #PCDATA ) >

@@ -1,0 +1,611 @@
+#!/usr/bin/perl
+
+#
+#
+# GenCCode - Version 0.1, A C Check unit testing framework generator
+# ----------------------------------------------------------------------
+# Distributed under the GPL.  See the file 
+# "COPYING" that accompanies this distribution.
+#
+
+require "ctime.pl";
+require "getopts.pl";
+
+use XML::TreeBuilder;
+
+# 1 = on (verbose); 0 = off 
+$debug = 0;
+
+# Get the current date
+$date = &ctime(time);
+print "date = $date\n";
+
+# Set the default tab size
+$tabSize = 4;
+
+$minorVersion = 1;
+$majorVersion = 0;
+$prgURL   = "http://cutfg.sourceforge.net/";
+
+
+# Global variables for unit testing framework
+# generation
+$suitename = "";
+
+# Set up default templates
+&Getopts( 'md:p:' ); # colon indicates that it requires an argument
+# no colon indicates that no argument is required
+
+if ($#ARGV < 0) {
+  die "Usage: -p <output-path> -d<sym>=<value> -m [ <input-files> ... ]\n -m to generate Makefile (using Makefile.template)";
+}
+
+# Set the destination path.
+$destPath = "";
+$destPath = $opt_p if (defined($opt_p));
+$destPath =~ s/\s*$//; # strip trailing spaces
+if ((!($destPath =~ /\/$/)) && ($destpath))
+{
+	$destPath .= "/";
+}
+#print "destPath = $destPath\n";
+undef $makefileTemplate;
+$makefileTemplate = "Makefile.template" if (defined($opt_m));
+
+# Set the tab size.
+$tabSize = $opt_t if (defined($opt_t));
+
+# Handle defines
+if ($opt_d) {
+  foreach $def (split( /,/, $opt_d )) {
+    if ($def =~ /\s*(\w*)\=(.*)/) {
+      $${1} = $2;
+    }
+    else {
+      $${1} = 1;
+    }
+  }
+}
+
+$filename = "";
+
+
+# For each input filename, parse it
+while ($srcfile = shift(@ARGV)) {
+	$tree = XML::TreeBuilder->new;
+	$tree->store_comments(1);
+	$tree->parse_file($srcfile);
+	&genUnitTestFramework($tree);
+	$tree->delete;
+}
+
+exit;
+
+
+sub genUnitTestFramework {
+
+	local ($tree,$fname,$suitename);
+	local ($body);
+	my ($tree) = @_;
+
+	@tags = $tree->find_by_tag_name('suitename');
+	if ($#tags > 1)
+	{
+		die "Only one <suitename> per suite\n";
+	}
+	$suitename = $tags[0]->as_text();
+
+	$fname = "test_" . $suitename . ".c";
+  print "\$suitename=$suitename----\n";
+	&newfile($fname);
+
+	print FOUT "/*\n";
+	print FOUT " * This file is a testsuite \"$suitename\" for testing\n";
+	print FOUT " * file $filename\n";
+	print FOUT " *\n";
+	print FOUT " * Author:\n";
+	print FOUT " *   Neeraj Sharma (neerajs\@convergelabs.com)\n";
+	print FOUT " */\n";
+	print FOUR "/* Include standard libraries */\n";
+	print FOUT "#include <stdlib.h>\n";
+	print FOUT "/* Include Check unit test framework header file */\n";
+	print FOUT "#include <check.h>\n";
+	print FOUT "/* Include a header file for external prototypes and types */\n";
+	print FOUT "#include \"test_" . $suitename . ".h\"\n\n";
+
+# robodoc comments
+  $robodoc_func_header = "/****f* Suite_<suitename>/<name> [1.0] *\n";
+  $robodoc_func_header .= "*  NAME\n";
+  $robodoc_func_header .= "*    <name> - <doc_title>\n";
+  $robodoc_func_header .= "*  SYNOPSIS\n";
+  $robodoc_func_header .= "*    START_TEST(<name>)\n";
+  $robodoc_func_header .= "*  FUNCTION\n";
+  $robodoc_func_header .= "<doc_function>\n";
+  #$robodoc_func_header .= "*  INPUTS\n";
+  #$robodoc_func_header .= "*  RESULT\n";
+  $robodoc_func_header .= "*  NOTES\n";
+  $robodoc_func_header .= "<doc_notes>\n";
+  $robodoc_func_header .= "*  BUGS\n";
+  $robodoc_func_header .= "<doc_bugs>\n";
+  $robodoc_func_header .= "*  SEE ALSO\n";
+  $robodoc_func_header .= "<doc_seealso>\n";
+  $robodoc_func_header .= "*  TODO\n";
+  $robodoc_func_header .= "<doc_todo>\n";
+  $robodoc_func_header .= "*  SOURCE\n";
+  $robodoc_func_header .= "*/\n";
+  $robodoc_footer = "/************/\n";
+
+
+	$setupteardownAdd = "";
+	$tcaseDecl = "";
+	$tcaseCall = "";
+	$tcaseAdds = "";
+	$testAdds = "";
+	$body = "";
+	$functions_done = ""; # list of unique function names
+	# which are to be tested seperated by ';'
+	foreach $testgroup ($tree->find_by_tag_name('testgroup'))
+	{
+		$body .= "\n";
+		$tag = $testgroup->find_by_tag_name('name');
+		$fnname = $tag->as_text();
+		%settear = ( "checked" => "", "unchecked" => "" );
+		# FIXME not checking for more than one setup of same type
+		foreach $setup ($testgroup->find_by_tag_name('setup'))
+		{
+			$tmp = "";
+			$setupType = $setup->attr('type');
+			if ($debug)
+			{
+				print "[$setupType]\n";
+			}
+			if ($setupType && (!($setupType =~ /^(checked|unchecked)$/)))
+			{
+				print "Incorrect of no setup type specified for tg_$fnname. ";
+				print "Assuming 'checked' by default\n";
+				$setupType = "checked";
+			}
+			$tag = $setup->find_by_tag_name('data');
+			#print FOUT $tag->as_text();
+			#$body .= "/* Setup for testgroup tg_$fnname */\n";
+			$doc = $setup->find_by_tag_name('doc');
+			if ($doc)
+			{
+				# TODO ... add more tags! ex. initialconditions, etc ...
+				%docInfos = &extractDocTag($doc, "tg_" . $fnname . "_setup_" . $setupType);
+				$tmp .= &fillFunctionDoc(%docInfos);
+			}
+			$tmp .=  "void\n";
+			$tmp .=  "tg_${fnname}_setup_${setupType}(void)\n";
+			$tmp .= &getElementArrayText($tag);
+			if ($doc)
+			{
+				$tmp .= $robodoc_footer;
+			}
+			$settear{$setupType} .= $tmp; # save setup
+		}
+		# FIXME not checking for more than one teardown of same type
+		foreach $teardown ($testgroup->find_by_tag_name('teardown'))
+		{
+			$tmp = "";
+			$teardownType = $teardown->attr('type');
+			if ($debug)
+			{
+				print "[$teardownType]\n";
+			}
+			if ($teardownType && (!($teardownType =~ /^(checked|unchecked)$/)))
+			{
+				print "Incorrect of no teardown type specified for tg_$fnname. ";
+				print "Assuming 'checked' by default\n";
+				$setupType = "checked";
+			}
+			$tag = $teardown->find_by_tag_name('data');
+			#print FOUT $tag->as_text();
+			#$body .= "/* Teardown for testgroup tg_$fnname */\n";
+			$doc = $teardown->find_by_tag_name('doc');
+			if ($doc)
+			{
+				# TODO ... add more tags! ex. initialconditions, etc ...
+				%docInfos = &extractDocTag($doc, "tg_" . $fnname . "_teardown_" . $teardownType);
+				$tmp .= &fillFunctionDoc(%docInfos);
+			}
+			$tmp .=  "void\n";
+			$tmp .=  "tg_${fnname}_teardown_${teardownType}(void)\n";
+			$tmp .= &getElementArrayText($tag);
+			if ($doc)
+			{
+				$tmp .= $robodoc_footer;
+			}
+			$settear{$teardownType} .= "\n" . $tmp; # save setup
+		}
+		$body .= "\n";
+		$body .= $settear{"checked"};
+		$body .= "\n";
+		$body .= $settear{"unchecked"};
+		# add code to add setup and teardown
+		if ($settear{"unchecked"})
+		{
+			$setupteardownAdd .= "\t";
+			$setupteardownAdd .= "tcase_add_unchecked_fixture";
+			$setupteardownAdd .= "(tg_" . $fnname . ", tg_" . $fnname;
+			$setupteardownAdd .= "_setup_" . "unchecked" . ", tg_" . $fnname . "_teardown_" . "unchecked" . ");\n";
+		}
+		if ($settear{"checked"})
+		{
+			$setupteardownAdd .= "\t";
+			$setupteardownAdd .= "tcase_add_checked_fixture";
+			$setupteardownAdd .= "(tg_" . $fnname . ", tg_" . $fnname;
+			$setupteardownAdd .= "_setup_" . "checked" . ", tg_" . $fnname . "_teardown_" . "checked" . ");\n";
+		}
+		foreach $test ($testgroup->find_by_tag_name('test'))
+		{
+			#
+			#print $test;
+			$body .= "\n";
+			$tag = $test->find_by_tag_name('label');
+			$label = $tag->as_text();
+			$tag = $test->find_by_tag_name('index');
+			$index = $tag->as_text();
+			$doc = $test->find_by_tag_name('doc');
+			if ($doc)
+			{
+				# TODO ... add more tags! ex. initialconditions, etc ...
+				%docInfos = &extractDocTag($doc,"test_" . $fnname . $index);
+				$body .= &fillFunctionDoc(%docInfos);
+			}
+			$body .= "START_TEST(test_$fnname$index)\n";
+			$body .= "{\n";
+			$decl = $test->find_by_tag_name('decl');
+			$text = $decl->find_by_tag_name('auto');
+			#$body .= $text->as_text();
+			$body .= &getElementArrayText($text);
+			$text = $decl->find_by_tag_name('custom');
+			#$body .= $text->as_text();
+			$body .= &getElementArrayText($text);
+			$text = $test->find_by_tag_name('init');
+			$body .= &getElementArrayText($text);
+			#$body .= $text->as_text();
+			$text = $test->find_by_tag_name('call');
+			$body .= &getElementArrayText($text);
+			#$body .= $text->as_text();
+			$text = $test->find_by_tag_name('exit');
+			$body .= &getElementArrayText($text);
+			#$body .= $text->as_text();
+			$body .= "\n}\n";
+			$body .= "END_TEST\n";
+			if ($doc)
+			{
+				$body .= $robodoc_footer;
+			}
+
+
+			$testAdds .= "\t/* $label */\n";
+			$testAdds .= "\ttcase_add_test(tg_$fnname, test_$fnname$index);\n";
+			if (!($functions_done =~ /$fnname/))
+			{
+				$tcaseDecl .= "\tTCase *tg_$fnname;\n";
+				$tcaseCreate .= "\ttg_$fnname = tcase_create(\"tg_$fnname\");\n";
+				$tcaseAdds .= "\tsuite_add_tcase(s, tg_$fnname);\n";
+				$functions_done .= $fnname . ";";
+			}
+		}
+	}
+	print FOUT $body;
+	# Now that all the test functions are written
+	# so create a testsuite
+	print FOUT "\n\nSuite*\n";
+	print FOUT $suitename . "_suite(void)\n";
+	print FOUT "{\n";
+	print FOUT "\t/* Declare a test suite */\n";
+	print FOUT "\tSuite *s;\n";
+	print FOUT "\t/* Declare test cases (one for every function tested)  */\n";
+	print FOUT "$tcaseDecl\n";
+	print FOUT "\n";
+	print FOUT "\t/* Create a test suite $suitename */\n";
+	print FOUT "\ts = suite_create(\"$suitename\");\n";
+	print FOUT "\t/* Create test cases */\n";
+	print FOUT $tcaseCreate;
+	print FOUT "\t/* Add setup and teardown to all the test cases */\n";
+	print FOUT $setupteardownAdd;
+	print FOUT "\t/* Add all the test cases to test suite $suitename */\n";
+	print FOUT $tcaseAdds;
+	print FOUT "\t/* Add tests to test cases */\n";
+	print FOUT $testAdds;
+	print FOUT "\t/* Done with creating and adding test, now return the\n";
+	print FOUT "\t * pointer to the test suite\n";
+	print FOUT "\t */\n";
+	print FOUT "\treturn s;\n";
+	print FOUT "}\n";
+	$mainImp = "int\nstartSuite$suitename(void)\n";
+	$mainImp .= "{\n\tint nf;\n";
+  	$mainImp .= "\tSuite *s;\n";
+	$mainImp .= "\tSRunner *sr;\n";
+  	$mainImp .= "\n\ts = $suitename" . "_suite();\n";
+	$mainImp .= "\tsr = srunner_create(s);\n";
+    $mainImp .= "\t /* srunner_set_fork_status (sr, CK_NOFORK);*/\n";
+  	$mainImp .= "\tsrunner_run_all (sr, CK_NORMAL);\n";
+  	$mainImp .= "\tnf = srunner_ntests_failed(sr);\n";
+	$mainImp .= "\tsrunner_free(sr);\n";
+	$mainImp .= "\tsuite_free(s);\n";
+ 	$mainImp .= "\treturn (nf == 0) ? EXIT_SUCCESS : EXIT_FAILURE;\n";
+	$mainImp .= "}\n";
+	print FOUT "\n" . $mainImp;
+	#print FOUT "\tTCase *tg_$funcname:
+	close FOUT;
+	# Write the header file
+  $fname = "test_" . $suitename . ".h";
+	&newfile($fname);
+	$tmp = "test_" . $suitename . "_h";
+	$tmp =~ s/(\w+)/\U$1/g;
+	print FOUT "#ifndef " . $tmp . "\n";
+	print FOUT "#define " . $tmp . " 1\n";
+	print FOUT "\n\n";
+	print FOUT "/* Have the function prototypes for exported functions */\n";
+	print FOUT "int startSuite$suitename(void);\n";
+	print FOUT "\n";
+	print FOUT "#endif /* $tmp */\n";
+	close FOUT;
+	if (defined $makefileTemplate)
+	{
+		# Create a sample makefile
+		open(FIN,$makefileTemplate) || die "Can't open file $makefileTemplate\n";
+		@makeContents = <FIN>;
+		close FIN;
+		$makeContent = join('',@makeContents);
+		if (&openfile("Makefile") == 0)
+		{
+			@oldContents = <FIN>;
+			close FIN;
+			$oldContent = join('',@oldContents);
+#			print $oldContent;
+			$oldContent =~ /(SRC(\t| )*\=[^\n]*)/;
+			#print $1 . "\n"; #note this print (interesting)
+			$outContent = substr($oldContent,0,$+[0]);
+			$oldContent = substr($oldContent,$+[0]);
+			#print $oldContent;
+			#print $outContent;
+			#print $1 . "\n";
+			if (!($1 =~ /test_${suitename}/))
+			{
+				$outContent .= " test_${suitename}.c";
+			}
+			else
+			{
+				$outContent .= "";
+			}
+			$oldContent =~ /usage\s*\:\s*/;
+			#print substr($oldContent,0, $-[0]) . "\n";
+			$outContent .= substr($oldContent,0, $+[0]);
+			$oldContent = substr($oldContent, $+[0]);
+			$oldContent =~ /(( |\t)*\@echo( |\t)*\"[^\"]*)/;
+			#print $outContent;
+			$tmp = $1;
+			#print $tmp . "\n";
+			if (!($tmp =~ /( |\/)$suitename(|\/)/))
+			{
+				$outContent .= $tmp . "\/$suitename";
+			}
+			else
+			{
+				$outContent .= $tmp;
+			}
+			$oldContent = substr($oldContent,$+[0]);
+			$oldContent =~ /clean\s*\:/;
+			$outContent .= substr($oldContent,0, $-[0]);
+			#print $outContent;
+			$tmp2 .= substr($oldContent,$-[0]);
+#### 
+			if (!($outContent =~ /$suitename\:/))
+			{
+				$makeContent =~ /\<suitename\>\:/;
+				$tmp = substr($makeContent,$-[0]);
+				$tmp =~ /\w+\s*\:/;
+				$tmp = substr($tmp,0,$-[0]);
+				$tmp =~ s/\<suitename\>/${suitename}/g;
+				#print $tmp;
+			}
+			else
+			{
+				$tmp = "";
+			}
+			#$outContent .= $tmp;
+			$outContent .= $tmp . $tmp2;
+			#print $outContent;
+####
+		}
+		else
+		{
+			$makeContent =~ s/\<suitename\>/${suitename}/g;
+			$makeContent =~ s/\<frameworklib\>/libcheck\.a/g;
+			#print $makeContent;
+			$outContent = $makeContent;
+		}
+		&newfile("Makefile");
+		print FOUT $outContent;
+		close FOUT;
+	}
+}
+# Open a file for reading
+sub openfile {
+  my ($mfile) = @_;
+
+	my ($fullfilename);
+	$fullfilename = $destPath . $mfile;
+  #print "Reading file=$fullfilename\n";
+  open( FIN, "$fullfilename" ) || return -1;
+	return 0;
+}
+
+# Open a new output file
+sub newfile {
+  my ($mfile) = @_;
+
+	my ($fullfilename);
+	$fullfilename = $destPath . $mfile;
+  print "Generated file=$fullfilename\n";
+  open( FOUT, ">$fullfilename" ) || die "Error writing to $fullfilename\n";
+}
+
+sub formatComment {
+	local ($str,@strs);
+	my ($str) = @_;
+
+	@strs = split('\n',$str);
+	$str = "";
+	foreach $singleLine (@strs)
+	{
+		#print "[[";
+		#print $singleLine;
+		#print "]]\n";
+		$singleLine =~ s/^\s*//;
+		if ($singleLine)
+		{
+			$str .= "*    ";
+			$str .= $singleLine;
+		}
+	}
+	#print "str=[";
+	#print $str;
+	#print "]\n";
+
+	return $str;
+}
+
+sub getElementText {
+			local ($elt);
+			local($tmp);
+			local ($output);
+			my ($elt) = @_;
+
+			$tmp = ref $elt;
+			if ($tmp =~ /XML\:\:Element/)
+			{
+				if ($debug)
+				{
+					print "[[";
+					print $elt->content_list();
+					print $elt->as_XML();
+					print "]]";
+				}
+				$output = $elt->as_XML();
+				$output =~ s/^<!--[\t ]*(\n|)//;
+				$output =~ s/\s*-->$//;
+				if ($debug)
+				{
+					print "->$output<-\n";
+				}
+				return $output;
+			}
+			else
+			{
+				if ($debug)
+				{
+					print "->$elt<-\n";
+				}
+				return $elt;
+			}
+}
+
+sub getElementArrayText {
+	local ($elt);
+	local ($count);
+	local ($output);
+	my ($elt) = @_;
+
+	$output = "";
+	for($count = 0;$count < ($#{$elt->content});$count++)
+	{
+		if ($debug)
+		{
+			print "start $count ";
+			print &getElementText($elt->content->[$count]);
+			print "   end\n";
+			print "[$count]\n";
+		}
+		$output .= &getElementText($elt->content->[$count]);
+		if ($debug)
+		{
+			print "$output\n";
+		}
+	}
+	$output =~ s/^\n//;
+	if ($debug)
+	{
+		print "[[ $output ]]\n";
+	}
+	return $output;
+}
+
+
+sub extractDocTag {
+	local ($doc);
+	local ($tag);
+	local (%docInfos);
+	local ($name);
+	my ($doc,$name) = @_;
+	
+	$tag = $doc->find_by_tag_name('title');
+	$doc_title = $tag->as_text();
+	$tag = $doc->find_by_tag_name('function');
+	$doc_function = $tag->as_text();
+	$tag = $doc->find_by_tag_name('notes');
+	$doc_notes = $tag->as_text();
+	$tag = $doc->find_by_tag_name('bugs');
+	$doc_bugs = $tag->as_text();
+	$tag = $doc->find_by_tag_name('seealso');
+	$doc_seealso = $tag->as_text();
+	$tag = $doc->find_by_tag_name('todo');
+	$doc_todo = $tag->as_text();
+	%docInfos = (
+		"suitename" => $suitename,
+		"name" => $name,
+		#"name" => "$fnname$index",
+		"title" => $doc_title,
+		"function" => $doc_function,
+		"notes" => $doc_notes,
+		"bugs" => $doc_bugs,
+		"seealso" => $doc_seealso,
+		"todo" => $doc_todo
+	);
+	return %docInfos;
+}
+
+
+# write robodoc comments
+sub fillFunctionDoc {
+	local ($suitename,$name,$doc_title,$doc_function);
+	local ($doc_notes,$doc_bugs,$doc_seealso,$doc_todo);
+	local (@inputStr);
+	local ($functionComment);
+	my (%inputStr) = @_;
+
+	# following statement will not print anything
+	#print ref %inputStr;
+	#print "\n";
+	# @inputStr is a list with hash subscripts
+	$suitename = $inputStr{"suitename"};
+	$name = $inputStr{"name"};
+	$doc_title = $inputStr{"title"};
+	$doc_function = $inputStr{"function"};
+	$doc_notes = $inputStr{"notes"};
+	$doc_bugs = $inputStr{"bugs"};
+	$doc_seealso = $inputStr{"seealso"};
+	$doc_todo = $inputStr{"todo"};
+
+	$functionComment = $robodoc_func_header;
+	$functionComment =~ s/\<suitename\>/$suitename/g;
+	$functionComment =~ s/\<name\>/$name/g;
+	$functionComment =~ s/\<doc_title\>/$doc_title/g;
+	$formatedString = &formatComment($doc_function);
+	$functionComment =~ s/\<doc_function\>/$formatedString/;
+	$formatedString = &formatComment($doc_notes);
+	$functionComment =~ s/\<doc_notes\>/$formatedString/;
+	$formatedString = &formatComment($doc_bugs);
+	$functionComment =~ s/\<doc_bugs\>/$formatedString/;
+	$formatedString = &formatComment($doc_seealso);
+	$functionComment =~ s/\<doc_seealso\>/$formatedString/;
+	$formatedString = &formatComment($doc_todo);
+	$functionComment =~ s/\<doc_todo\>/$formatedString/;
+	#print $functionComment;
+	return $functionComment;
+}
