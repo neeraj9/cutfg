@@ -44,7 +44,7 @@ if ($#ARGV < 0) {
 $destPath = "";
 $destPath = $opt_p if (defined($opt_p));
 $destPath =~ s/\s*$//; # strip trailing spaces
-if ((!($destPath =~ /\/$/)) && ($destpath))
+if (($destPath !~ /\/$/) && ($destPath))
 {
 	$destPath .= "/";
 }
@@ -334,17 +334,24 @@ sub genUnitTestFramework {
 	close FOUT;
 	# Write the header file
   $fname = "test_" . $suitename . ".h";
-	&newfile($fname);
-	$tmp = "test_" . $suitename . "_h";
-	$tmp =~ s/(\w+)/\U$1/g;
-	print FOUT "#ifndef " . $tmp . "\n";
-	print FOUT "#define " . $tmp . " 1\n";
-	print FOUT "\n\n";
-	print FOUT "/* Have the function prototypes for exported functions */\n";
-	print FOUT "int startSuite$suitename(void);\n";
-	print FOUT "\n";
-	print FOUT "#endif /* $tmp */\n";
-	close FOUT;
+	if (&openfile($fname) < 0)
+	{
+		&newfile($fname);
+		$tmp = "test_" . $suitename . "_h";
+		$tmp =~ s/(\w+)/\U$1/g;
+		print FOUT "#ifndef " . $tmp . "\n";
+		print FOUT "#define " . $tmp . " 1\n";
+		print FOUT "\n\n";
+		print FOUT "/* Have the function prototypes for exported functions */\n";
+		print FOUT "int startSuite$suitename(void);\n";
+		print FOUT "\n";
+		print FOUT "#endif /* $tmp */\n";
+		close FOUT;
+	}
+	else
+	{
+		close FIN;
+	}
 	if (defined $makefileTemplate)
 	{
 		# Create a sample makefile
@@ -378,18 +385,20 @@ sub genUnitTestFramework {
 			$outContent .= substr($oldContent,0, $+[0]);
 			$oldContent = substr($oldContent, $+[0]);
 			$oldContent =~ /(( |\t)*\@echo( |\t)*\"[^\"]*)/;
+			$oldContent = substr($oldContent,$+[0]);
 			#print $outContent;
 			$tmp = $1;
-			#print $tmp . "\n";
+			#print "->" . $tmp . "\n";
+			#print "->" . $suitename . "\n";
 			if (!($tmp =~ /( |\/)$suitename(|\/)/))
 			{
+				#print "added\n";
 				$outContent .= $tmp . "\/$suitename";
 			}
 			else
 			{
 				$outContent .= $tmp;
 			}
-			$oldContent = substr($oldContent,$+[0]);
 			$oldContent =~ /clean\s*\:/;
 			$outContent .= substr($oldContent,0, $-[0]);
 			#print $outContent;

@@ -562,7 +562,48 @@ sub parseDeclaration {
 	 $fnproto =~ s/^\s* //; # remove the beginning wide space (\ \r\n\t)
 	 # replace \n (newline) with ' ' (space)
 	 $fnproto =~ s/\n/ /;
-	 # print STDERR "$type$mod$baseScope$decl($args);\n";
+	 if ($debug)
+	 {
+		 print STDERR "$type$mod$baseScope$decl($args);\n";
+		 # note that if there is a c comment inside a declaration
+		 # then it will still remain there
+		 # so strip it
+		 print STDERR "\$_=$_\n";
+	 }
+	 ### extra code to take care of abnormal condition
+	 # for example ...
+	 # int func(int a /* comment
+	 # comment.....
+	 # */
+	 # )
+	 # {
+	 # ....
+	 # }
+	 while (/\/\*/)
+	 {
+		 &stripComment;
+	 }
+	 if ($debug)
+	 {
+		 print "[$_]\n";
+	 }
+	 while (!(/\{/) && defined($_))
+	 {
+		$_ = "";
+		&rdln;
+		if ($debug)
+		{
+		  print "[$_]\n";
+		}
+	 }
+	 s/[^\{]*//;
+	 if ($debug)
+	 {
+		 print "done!\n";
+		 print "[$_]\n";
+	 }
+	 #### end of extra code
+
 	 #print STDERR "$fnproto\n";
 	 &rdln; # it automatically skips over blank lines and # (preprocessor cmds)
 	 #print "<>$_</>";
@@ -618,14 +659,20 @@ sub parseDeclaration {
 	
 	if ((($valid,)=&matchKW( "\=" )) && $valid) {
 	  for (;;) {
+				if ($debug)
+				{
+					print "\$_ = $_\n";
+				}
 				$matchedAny = 0;
 	    if (&matchRBracket) {
+				$matchedAny = 1;
 	      &skipBody;
 	      $final = 1;
 	      last;
 	    }
 	    
 	    if (&matchSemi) {
+				$matchedAny = 1;
 	      $final = 1;
 	      last;
 	    }
@@ -641,12 +688,13 @@ sub parseDeclaration {
 	    
 	    # var = (.....) ...
 	    if (&matchRParen) {
-	      &skipParenBody;
 				$matchedAny = 1;
+	      &skipParenBody;
 	    }
 	    
 	    # var = ... * ...
 	    ($valid,$matchedstr) = &matchKW ("[\/\*\-\+]*");
+			#print "\$matchedstr = $matchedstr\n";
 			if ($matchedstr)
 			{
 				$matchedAny = 1;
@@ -654,15 +702,29 @@ sub parseDeclaration {
 	    
 	    # var = "..."
 	    if ((($valid,) = &matchKW ("[\"]")) && $valid) {
-	      &skipString;
 				$matchedAny = 1;
+	      &skipString;
 	    }
 	    #&matchString;
 	    
 	    last if /^\s*,/;
+			if ($debug)
+			{
+				print "123\$_ = $_\n";
+			}
 	    #last if !((($valid,)=&matchAny) && $valid);
 	    last if !((($valid,)=&matchKW("[A-Za-z_0-9 \-]*")) && $valid);
+			if ($debug)
+			{
+				print "\$valid = $valid\n";
+				print "321\$_ = $_\n";
+			}
+			if ($valid)
+			{
+				$matchedAny = 1;
+			}
 	    if (&matchSemi) {
+					$matchedAny = 1;
 	        $final = 1;
 	        last;
 	    }
@@ -672,6 +734,7 @@ sub parseDeclaration {
 		{
 			if ($silent == 0)
 			{
+				print "\$_ = $_\n";
 				print "Unrecognised file format (expected C file)\n";
 			}
 			exit(2);

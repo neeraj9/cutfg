@@ -3,7 +3,7 @@
 # put the include paths used by the implementation file
 # so that the unit test code compiles
 IMPL_INC=
-IMPL_LIB=
+IMPL_LIB= libsample2.a
 FRAMEWORK_INC_PATH=.
 SELF_INC=-I ../include
 
@@ -30,7 +30,7 @@ else
 	FRAMEWORK_INC=
 endif
 
-FRAMEWORK_LIB= <frameworklib>
+FRAMEWORK_LIB= libcheck.a
 
 INCLUDES= -I . $(FRAMEWORK_INC) $(IMPL_INC) $(SELF_INC)
 STATICLIBS= $(FRAMEWORK_LIB) $(IMPL_LIB)
@@ -53,11 +53,11 @@ endif
 endif
 endif
 
-SRC= test_<suitename>.c
+SRC= test_sample2.c
 OBJS=$(SRC:%.c=%.o)
 
 usage:
-	@echo "Do make all/<suitename>"
+	@echo "Do make all/sample2"
 	@echo "You can also specify a version by doing"
 	@echo "    make VERSION=PROFILE (or DEBUG or RELEASE)"
 
@@ -68,9 +68,9 @@ all: $(OBJS)
 .c.o:
 	$(GCC) -c $(INCLUDES) $(CFLAGS) $< -o $@
 
-<suitename>: test_<suitename>.o 
-	$(GCC) -c $(INCLUDES) $(CFLAGS) -D<suitename> main.c -o main.o
-	$(GCC) $(CFLAGS) $(EXTRA_OBJS) test_<suitename>.o main.o $(LDFLAGS) -o test_<suitename>
+sample2: test_sample2.o 
+	$(GCC) -c $(INCLUDES) $(CFLAGS) -Dsample2 main.c -o main.o
+	$(GCC) $(CFLAGS) $(EXTRA_OBJS) test_sample2.o main.o $(LDFLAGS) -o test_sample2
 
 clean:
 	rm -f *.o

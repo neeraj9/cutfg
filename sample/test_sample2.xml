@@ -1,0 +1,564 @@
+<?xml version='1.0'?>
+<!DOCTYPE suite SYSTEM "http://cutfg.sourceforge.net/xmldtd/xmlscript.dtd">
+<suite>
+<suitename>sample2</suitename>
+	<!-- *
+	 * This file is a testsuite "sample2" for testing
+	 * file sample2.c
+	 *
+	 * Author:
+	 *   Neeraj Sharma
+	 -->
+	<testgroup>
+		<name>addNum</name>
+		<setup type="unchecked">
+			<doc>
+				<title> Write One line description </title>
+				<function>
+Write multiline function of this subroutine
+				</function>
+				<notes>
+Write notes here
+				</notes>
+				<bugs>
+Write bugs here
+				</bugs>
+				<seealso>
+Write SEE ALSO here
+				</seealso>
+				<todo>
+Write TODO's here
+				</todo>
+			</doc>
+			<data>
+<!--
+{
+    /* write setup code here */
+}
+-->
+			</data>
+		</setup>
+		<teardown type="unchecked">
+			<doc>
+				<title> Write One line description </title>
+				<function>
+Write multiline function of this subroutine
+				</function>
+				<notes>
+Write notes here
+				</notes>
+				<bugs>
+Write bugs here
+				</bugs>
+				<seealso>
+Write SEE ALSO here
+				</seealso>
+				<todo>
+Write TODO's here
+				</todo>
+			</doc>
+			<data>
+<!--
+{
+    /* write teardown code here */
+}
+-->
+			</data>
+		</teardown>
+		<setup type="checked">
+			<doc>
+				<title> Write One line description </title>
+				<function>
+Write multiline function of this subroutine
+				</function>
+				<notes>
+Write notes here
+				</notes>
+				<bugs>
+Write bugs here
+				</bugs>
+				<seealso>
+Write SEE ALSO here
+				</seealso>
+				<todo>
+Write TODO's here
+				</todo>
+			</doc>
+			<data>
+<!--
+{
+    /* write setup code here */
+}
+-->
+			</data>
+		</setup>
+		<teardown type="checked">
+			<doc>
+				<title> Write One line description </title>
+				<function>
+Write multiline function of this subroutine
+				</function>
+				<notes>
+Write notes here
+				</notes>
+				<bugs>
+Write bugs here
+				</bugs>
+				<seealso>
+Write SEE ALSO here
+				</seealso>
+				<todo>
+Write TODO's here
+				</todo>
+			</doc>
+			<data>
+<!--
+{
+    /* write teardown code here */
+}
+-->
+			</data>
+		</teardown>
+		<test>
+			<index>1</index>
+			<label></label>
+			<doc>
+				<title> Write One line description </title>
+				<function>
+Write multiline function of this subroutine
+				</function>
+				<notes>
+Write notes here
+				</notes>
+				<bugs>
+Write bugs here
+				</bugs>
+				<seealso>
+Write SEE ALSO here
+				</seealso>
+				<todo>
+Write TODO's here
+				</todo>
+				<initialconditions>
+					<data> an initial condition </data>
+				</initialconditions>
+				<inputvectors>
+					<data> an input vector </data>
+				</inputvectors>
+				<expectedresults>
+					<data> an expected result </data>
+				</expectedresults>
+			</doc>
+			<code>
+				<decl>
+					<auto>
+<!--
+	/* Start of variable declaration used by function
+	 * under test.
+	 */
+	int ret;
+	int a;
+	int b;
+	/* End of variable declaration used by function
+	 * under test.
+	 */
+-->
+					</auto>
+					<custom>
+<!--
+	/* Write additional declarations here */
+-->
+					</custom>
+				</decl>
+				<init>
+<!--
+	/* Test specific initialization goes here */
+	a = 10;
+	b = 10;
+-->
+				</init>
+				<call>
+<!--
+	/* Consider the present state  */
+	/* Call the function under test.*/
+	ret = addNum(a,b);
+-->
+				</call>
+				<exit>
+<!--
+	/* Test case result analysis goes here */
+	fail_unless(ret == 20,NULL);
+-->
+				</exit>
+			</code>
+		</test>
+	</testgroup>
+	<testgroup>
+		<name>subNum</name>
+		<setup type="unchecked">
+			<doc>
+				<title> Write One line description </title>
+				<function>
+Write multiline function of this subroutine
+				</function>
+				<notes>
+Write notes here
+				</notes>
+				<bugs>
+Write bugs here
+				</bugs>
+				<seealso>
+Write SEE ALSO here
+				</seealso>
+				<todo>
+Write TODO's here
+				</todo>
+			</doc>
+			<data>
+<!--
+{
+    /* write setup code here */
+}
+-->
+			</data>
+		</setup>
+		<teardown type="unchecked">
+			<doc>
+				<title> Write One line description </title>
+				<function>
+Write multiline function of this subroutine
+				</function>
+				<notes>
+Write notes here
+				</notes>
+				<bugs>
+Write bugs here
+				</bugs>
+				<seealso>
+Write SEE ALSO here
+				</seealso>
+				<todo>
+Write TODO's here
+				</todo>
+			</doc>
+			<data>
+<!--
+{
+    /* write teardown code here */
+}
+-->
+			</data>
+		</teardown>
+		<setup type="checked">
+			<doc>
+				<title> Write One line description </title>
+				<function>
+Write multiline function of this subroutine
+				</function>
+				<notes>
+Write notes here
+				</notes>
+				<bugs>
+Write bugs here
+				</bugs>
+				<seealso>
+Write SEE ALSO here
+				</seealso>
+				<todo>
+Write TODO's here
+				</todo>
+			</doc>
+			<data>
+<!--
+{
+    /* write setup code here */
+}
+-->
+			</data>
+		</setup>
+		<teardown type="checked">
+			<doc>
+				<title> Write One line description </title>
+				<function>
+Write multiline function of this subroutine
+				</function>
+				<notes>
+Write notes here
+				</notes>
+				<bugs>
+Write bugs here
+				</bugs>
+				<seealso>
+Write SEE ALSO here
+				</seealso>
+				<todo>
+Write TODO's here
+				</todo>
+			</doc>
+			<data>
+<!--
+{
+    /* write teardown code here */
+}
+-->
+			</data>
+		</teardown>
+		<test>
+			<index>1</index>
+			<label></label>
+			<doc>
+				<title> Write One line description </title>
+				<function>
+Write multiline function of this subroutine
+				</function>
+				<notes>
+Write notes here
+				</notes>
+				<bugs>
+Write bugs here
+				</bugs>
+				<seealso>
+Write SEE ALSO here
+				</seealso>
+				<todo>
+Write TODO's here
+				</todo>
+				<initialconditions>
+					<data> an initial condition </data>
+				</initialconditions>
+				<inputvectors>
+					<data> an input vector </data>
+				</inputvectors>
+				<expectedresults>
+					<data> an expected result </data>
+				</expectedresults>
+			</doc>
+			<code>
+				<decl>
+					<auto>
+<!--
+	/* Start of variable declaration used by function
+	 * under test.
+	 */
+	int ret;
+	int a;
+	int b;
+	/* End of variable declaration used by function
+	 * under test.
+	 */
+-->
+					</auto>
+					<custom>
+<!--
+	/* Write additional declarations here */
+-->
+					</custom>
+				</decl>
+				<init>
+<!--
+	/* Test specific initialization goes here */
+	a = 20;
+	b = 10;
+-->
+				</init>
+				<call>
+<!--
+	/* Consider the present state  */
+	/* Call the function under test.*/
+	ret = subNum(a,b);
+-->
+				</call>
+				<exit>
+<!--
+	/* Test case result analysis goes here */
+	fail_unless(ret == 100,NULL);
+-->
+				</exit>
+			</code>
+		</test>
+	</testgroup>
+	<testgroup>
+		<name>mulNum</name>
+		<setup type="unchecked">
+			<doc>
+				<title> Write One line description </title>
+				<function>
+Write multiline function of this subroutine
+				</function>
+				<notes>
+Write notes here
+				</notes>
+				<bugs>
+Write bugs here
+				</bugs>
+				<seealso>
+Write SEE ALSO here
+				</seealso>
+				<todo>
+Write TODO's here
+				</todo>
+			</doc>
+			<data>
+<!--
+{
+    /* write setup code here */
+}
+-->
+			</data>
+		</setup>
+		<teardown type="unchecked">
+			<doc>
+				<title> Write One line description </title>
+				<function>
+Write multiline function of this subroutine
+				</function>
+				<notes>
+Write notes here
+				</notes>
+				<bugs>
+Write bugs here
+				</bugs>
+				<seealso>
+Write SEE ALSO here
+				</seealso>
+				<todo>
+Write TODO's here
+				</todo>
+			</doc>
+			<data>
+<!--
+{
+    /* write teardown code here */
+}
+-->
+			</data>
+		</teardown>
+		<setup type="checked">
+			<doc>
+				<title> Write One line description </title>
+				<function>
+Write multiline function of this subroutine
+				</function>
+				<notes>
+Write notes here
+				</notes>
+				<bugs>
+Write bugs here
+				</bugs>
+				<seealso>
+Write SEE ALSO here
+				</seealso>
+				<todo>
+Write TODO's here
+				</todo>
+			</doc>
+			<data>
+<!--
+{
+    /* write setup code here */
+}
+-->
+			</data>
+		</setup>
+		<teardown type="checked">
+			<doc>
+				<title> Write One line description </title>
+				<function>
+Write multiline function of this subroutine
+				</function>
+				<notes>
+Write notes here
+				</notes>
+				<bugs>
+Write bugs here
+				</bugs>
+				<seealso>
+Write SEE ALSO here
+				</seealso>
+				<todo>
+Write TODO's here
+				</todo>
+			</doc>
+			<data>
+<!--
+{
+    /* write teardown code here */
+}
+-->
+			</data>
+		</teardown>
+		<test>
+			<index>1</index>
+			<label></label>
+			<doc>
+				<title> Write One line description </title>
+				<function>
+Write multiline function of this subroutine
+				</function>
+				<notes>
+Write notes here
+				</notes>
+				<bugs>
+Write bugs here
+				</bugs>
+				<seealso>
+Write SEE ALSO here
+				</seealso>
+				<todo>
+Write TODO's here
+				</todo>
+				<initialconditions>
+					<data> an initial condition </data>
+				</initialconditions>
+				<inputvectors>
+					<data> an input vector </data>
+				</inputvectors>
+				<expectedresults>
+					<data> an expected result </data>
+				</expectedresults>
+			</doc>
+			<code>
+				<decl>
+					<auto>
+<!--
+	/* Start of variable declaration used by function
+	 * under test.
+	 */
+	int ret;
+	int a;
+	int b;
+	/* End of variable declaration used by function
+	 * under test.
+	 */
+-->
+					</auto>
+					<custom>
+<!--
+	/* Write additional declarations here */
+-->
+					</custom>
+				</decl>
+				<init>
+<!--
+	/* Test specific initialization goes here */
+	a = 10;
+	b = 10;
+-->
+				</init>
+				<call>
+<!--
+	/* Consider the present state  */
+	/* Call the function under test.*/
+	ret = mulNum(a,b);
+-->
+				</call>
+				<exit>
+<!--
+	/* Test case result analysis goes here */
+	fail_unless(ret == 100,NULL);
+-->
+				</exit>
+			</code>
+		</test>
+	</testgroup>
+	</suite>

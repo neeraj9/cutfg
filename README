@@ -11,3 +11,8 @@ Example run.
 ### test_sample.xml is generated.
 ./genCcode test_sample.xml
 ### test_sample.c is generated.
+
+
+How to install perl module
+----------------------------------
+perl -MCPAN -e 'install "TreeBuilder"'
