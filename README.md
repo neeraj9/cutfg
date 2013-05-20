@@ -51,6 +51,7 @@ Install perl module on Linux
 
     perl -MCPAN -e 'install "TreeBuilder"'
 
+The above command installs the TreeBuilder module on Linux.
 
 Install perl module on Mac OS X
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
