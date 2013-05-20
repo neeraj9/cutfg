@@ -3,7 +3,7 @@
  * file 
  *
  * Author:
- *   Neeraj Sharma (neerajs@convergelabs.com)
+ *   Author Name (author@email.com)
  */
 #include <stdlib.h>
 /* Include Check unit test framework header file */

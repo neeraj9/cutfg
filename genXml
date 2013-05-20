@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 #
 # GenXml - Version 0.1, A C Check unit testing framework generator
 #                       (XML generator)
@@ -875,7 +875,6 @@ sub extractBlock {
 					}
 					if (/\{/){
 						#print "$_ :";
-						#print "neeraj\n";
 						$openBracePos = $-[0];
 						if ($debug)
 						{
