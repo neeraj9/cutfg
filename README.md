@@ -49,12 +49,14 @@ How to install perl module
 Install perl module on Linux
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    perl -MCPAN -e 'install "TreeBuilder"'
+The following command installs the TreeBuilder module on Linux.
 
-The above command installs the TreeBuilder module on Linux.
+    perl -MCPAN -e 'install "TreeBuilder"'
 
 Install perl module on Mac OS X
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Mac OS X has a different way of installing perl modules as shown below:
 
     sudo CPAN
     # answer a tons of questions if you are running it for the first time
