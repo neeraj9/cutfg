@@ -61,3 +61,14 @@ Install perl module on Mac OS X
     # after a long time (if you are installing your first module on Mac)
     # the module is built and installed
     # Note: the default build location, cache is in ~/.cpan/
+
+References
+------------
+
+* <http://en.wikipedia.org/wiki/List_of_unit_testing_frameworks#C>
+* <http://check.sourceforge.net>
+* <http://rfsber.home.xs4all.nl/Robo/index.html>
+* <http://www.stack.nl/~dimitri/doxygen/>
+* <http://learn.perl.org>
+* <http://www.python.org>
+
